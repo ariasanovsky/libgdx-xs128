@@ -3,9 +3,9 @@ name = "libgdx-xs128"
 version = "0.1.0"
 edition = "2021"
 authors = ["Alex Riasanovsky"]
-license = "Apache-2.0"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/ariasanovsky/libgdx-xs128"
-description = "libgdx-xs128 is a minimalist Rust crate that provides a random number generator based on the Xorshift128+ algorithm used in the libgdx Java library."
+description = "minimalist clone of the Xorshift128+ algorithm used in the libgdx Java library."
 
 [dependencies]
 
