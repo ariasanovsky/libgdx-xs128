@@ -1,6 +1,6 @@
 # libgdx-xs128
 
-A minimalist replication of `RandomXS128` from the Java library [libgdx](https://github.com/libgdx/libgdx).
+A minimalist replication of `RandomXS128` from the Java library [libgdx](https://github.com/libgdx/libgdx). Implementation inspired by [sts_map_oracle](https://github.com/Ru5ty0ne/sts_map_oracle/).
 
 ## Features
 
