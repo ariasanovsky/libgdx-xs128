@@ -1,11 +1,11 @@
 [package]
 name = "libgdx-xs128"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Alex Riasanovsky"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ariasanovsky/libgdx-xs128"
-description = "minimalist clone of the Xorshift128+ algorithm used in the libgdx Java library."
+description = "minimalist no_std clone of the Xorshift128+ algorithm used in the libgdx Java library."
 
 [dependencies]
 
