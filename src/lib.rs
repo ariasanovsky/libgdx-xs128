@@ -44,15 +44,11 @@ pub trait RandomXS128:
         }
     }
 
-    fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool) {
-        let bits = self.next_u64() >> 1;
-        let residue = bits % modulus;
-        (residue, bits + modulus < residue + 1)
-    }
-
     fn unchecked_next_capped_u64(&mut self, modulus: u64) -> u64 {
         self.overflowing_next_capped_u64(modulus).0
     }
+
+    fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool);
 }
 
 #[cfg(test)]

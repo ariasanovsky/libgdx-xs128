@@ -26,6 +26,12 @@ impl RandomXS128 for Random {
         self.seed1 = s1 ^ s0 ^ s1 >> 17 ^ s0 >> 26;
         s0.wrapping_add(self.seed1)
     }
+
+    fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool)  {
+        let bits = self.next_u64() >> 1;
+        let residue = bits % modulus;
+        (residue, bits + modulus < residue + 1)
+    }
 }
 
 impl Random {
