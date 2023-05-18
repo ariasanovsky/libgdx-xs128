@@ -1,3 +1,5 @@
+use super::*;
+
 impl From<i64> for Random {
     fn from(value: i64) -> Self {
         SeedInitializer::Seed(value as u64).into()
