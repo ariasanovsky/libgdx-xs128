@@ -12,26 +12,10 @@ pub enum SeedInitializer {
     Seed1(u64),
 }
 
-impl From<SeedInitializer> for Random {
-    fn from(value: SeedInitializer) -> Self {
-        use SeedInitializer::*;
-        match value {
-            SeedPair(seed0, seed1) => Random { seed0, seed1 },
-            Seed(seed) => {
-                let seed0 = Self::murmur_hash3(seed);
-                Seed0(seed0).into()
-            }
-            Seed0(seed0) => {
-                let seed1 = Self::murmur_hash3(seed0);
-                SeedPair(seed0, seed1).into()
-            }
-            Seed1(seed1) => {
-                let seed0 = Self::inverse_murmur_hash3(seed1);
-                SeedPair(seed0, seed1).into()
-            }
-        }
-    }
-}
+mod from;
+mod next_u64;
+pub use from::*;
+pub use next_u64::*;
 
 impl Random {
     pub fn new(seed: u64) -> Self {
@@ -51,17 +35,27 @@ impl Random {
 
     pub fn next_capped_u64(&mut self, modulus: u64) -> u64 {
         loop {
-            let bits = self.next_u64() >> 1;
-            let residue = bits % modulus;
+            let (residue, overflowed) = 
+                self.overflowing_next_capped_u64(modulus);
             #[cfg(feature = "reroll")]
-            if bits + modulus < residue + 1 {
+            if overflowed {
                 continue;
             }
             return residue;
         }
     }
 
-    fn murmur_hash3(mut x: u64) -> u64 {
+    pub(crate) fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool) {
+        let bits = self.next_u64() >> 1;
+        let residue = bits % modulus;
+        (residue, bits + modulus < residue + 1)
+    }
+
+    pub fn next_capped_u64_raw(&mut self, modulus: u64) -> u64 {
+        self.overflowing_next_capped_u64(modulus).0
+    }
+
+    pub(crate) fn murmur_hash3(mut x: u64) -> u64 {
         x ^= x >> 33;
         x = x.wrapping_mul(0xff51afd7ed558ccd);
         x ^= x >> 33;
@@ -70,7 +64,7 @@ impl Random {
         x
     }
 
-    fn inverse_murmur_hash3(mut x: u64) -> u64 {
+    pub(crate) fn inverse_murmur_hash3(mut x: u64) -> u64 {
         x ^= x >> 33;
         x = x.wrapping_mul(0x9cb4b2f8129337db);
         x ^= x >> 33;

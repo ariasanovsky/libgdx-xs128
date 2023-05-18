@@ -12,6 +12,18 @@ pub enum SeedInitializer {
     Seed1(u64),
 }
 
+impl From<i64> for Random {
+    fn from(value: i64) -> Self {
+        SeedInitializer::Seed(value as u64).into()
+    }
+}
+
+impl From<(u64, u64)> for Random {
+    fn from((seed0, seed1): (u64, u64)) -> Self {
+        Random { seed0, seed1 }
+    }
+}
+
 impl From<SeedInitializer> for Random {
     fn from(value: SeedInitializer) -> Self {
         use SeedInitializer::*;
@@ -51,17 +63,27 @@ impl Random {
 
     pub fn next_capped_u64(&mut self, modulus: u64) -> u64 {
         loop {
-            let bits = self.next_u64() >> 1;
-            let residue = bits % modulus;
+            let (residue, overflowed) = 
+                self.overflowing_next_capped_u64(modulus);
             #[cfg(feature = "reroll")]
-            if bits + modulus < residue + 1 {
+            if overflowed {
                 continue;
             }
             return residue;
         }
     }
 
-    fn murmur_hash3(mut x: u64) -> u64 {
+    pub(crate) fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool) {
+        let bits = self.next_u64() >> 1;
+        let residue = bits % modulus;
+        (residue, bits + modulus < residue + 1)
+    }
+
+    pub fn next_capped_u64_raw(&mut self, modulus: u64) -> u64 {
+        self.overflowing_next_capped_u64(modulus).0
+    }
+
+    pub(crate) fn murmur_hash3(mut x: u64) -> u64 {
         x ^= x >> 33;
         x = x.wrapping_mul(0xff51afd7ed558ccd);
         x ^= x >> 33;
@@ -70,7 +92,7 @@ impl Random {
         x
     }
 
-    fn inverse_murmur_hash3(mut x: u64) -> u64 {
+    pub(crate) fn inverse_murmur_hash3(mut x: u64) -> u64 {
         x ^= x >> 33;
         x = x.wrapping_mul(0x9cb4b2f8129337db);
         x ^= x >> 33;

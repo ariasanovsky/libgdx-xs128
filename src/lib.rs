@@ -1,9 +1,10 @@
 #![no_std]
-pub mod new_rng;
-pub mod rng;
+pub(crate) mod new_rng;
+pub mod old_rng;
+pub use old_rng as rng;
 
 #[cfg(test)]
-mod java_consistency {
+mod unit_tests {
     enum RngValue {
         U64(u64),
         CappedU64 { modulus: u64, residue: u64 },
@@ -15,7 +16,7 @@ mod java_consistency {
         values: [Option<RngValue>; 16],
     }
 
-    use crate::{new_rng, rng};
+    use crate::{new_rng, old_rng};
 
     const VALUE_LISTS: [RngValues; 7] = [
         RngValues {
@@ -407,7 +408,7 @@ mod java_consistency {
     #[test]
     fn old_rng_vs_java_rng() {
         for RngValues { seed, values } in VALUE_LISTS {
-            let mut rng = rng::Random::new(seed);
+            let mut rng = old_rng::Random::new(seed);
             for value in values {
                 match value {
                     Some(RngValue::U64(n)) => {
@@ -445,4 +446,68 @@ mod java_consistency {
             }
         }
     }
+}
+
+#[cfg(kani)]
+mod verification {
+
+    use crate::old_rng::Random as OldRandom;
+    use crate::new_rng::Random as NewRandom;
+
+    #[kani::proof]
+    fn next_u64() {
+        let seed0 = kani::any();
+        let seed1 = kani::any();
+        let mut old_rng: OldRandom = (seed0, seed1).into();
+        let mut new_rng: NewRandom = (seed0, seed1).into();
+        
+        assert!(
+            old_rng.next_u64() ==
+            new_rng.next_u64()
+        );
+    }
+
+    #[kani::proof]
+    fn next_u64_capped_raw() {
+        let seed0 = kani::any();
+        let seed1 = kani::any();
+        let modulus: u64 = kani::any();
+
+
+        kani::assume(
+            modulus.is_power_of_two() ||
+            [3, 5, 6, 7].contains(&modulus)
+        );
+
+        let mut old_rng: OldRandom = (seed0, seed1).into();
+        let mut new_rng: NewRandom = (seed0, seed1).into();
+        
+        assert!(
+            old_rng.next_capped_u64_raw(modulus) ==
+            new_rng.next_capped_u64_raw(modulus)
+        );
+    }
+
+    #[kani::proof]
+    fn overflowing_next_u64_capped() {
+        let seed0 = kani::any();
+        let seed1 = kani::any();
+        let modulus: u64 = kani::any();
+
+
+        kani::assume(
+            modulus.is_power_of_two()
+            // || [3, 5, 6, 7].contains(&modulus)
+        );
+
+        let mut old_rng: OldRandom = (seed0, seed1).into();
+        let mut new_rng: NewRandom = (seed0, seed1).into();
+        
+        assert!(
+            old_rng.overflowing_next_capped_u64(modulus) ==
+            new_rng.overflowing_next_capped_u64(modulus)
+        );
+    }
+
+    
 }
