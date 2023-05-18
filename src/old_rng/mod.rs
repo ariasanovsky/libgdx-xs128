@@ -4,18 +4,12 @@ pub struct Random {
     seed1: u64,
 }
 
-#[derive(Debug)]
-pub enum SeedInitializer {
-    SeedPair(u64, u64),
-    Seed(u64),
-    Seed0(u64),
-    Seed1(u64),
-}
-
 mod from;
-mod next_u64;
+mod xs128;
 pub use from::*;
-pub use next_u64::*;
+pub use xs128::*;
+
+use crate::SeedInitializer;
 
 impl Random {
     pub fn new(seed: u64) -> Self {

@@ -1,14 +1,31 @@
 #![no_std]
-pub(crate) mod new_rng;
+pub mod new_rng;
 pub mod old_rng;
 pub use old_rng as rng;
 
-pub(crate) trait HashXS128 {
-    fn murmur_hash3(x: u64) -> u64;
-    fn shr33(x: u64) -> u64;
+#[derive(Debug)]
+pub enum SeedInitializer {
+    SeedPair(u64, u64),
+    Seed(u64),
+    Seed0(u64),
+    Seed1(u64),
 }
 
-pub trait RandomXS128 {
+impl From<i64> for SeedInitializer {
+    fn from(seed: i64) -> Self {
+        Self::Seed(seed as u64)
+    }
+}
+
+impl From<(u64, u64)> for SeedInitializer {
+    fn from((seed0, seed1): (u64, u64)) -> Self {
+        Self::SeedPair(seed0, seed1)
+    }
+}
+
+pub trait RandomXS128: 
+    From<SeedInitializer>
+{
     fn new(seed: u64) -> Self;
     fn next_u64(&mut self) -> u64;
     fn next_capped_u64(&mut self, modulus: u64) -> u64;
