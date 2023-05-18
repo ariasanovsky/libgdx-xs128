@@ -28,9 +28,30 @@ pub trait RandomXS128:
 {
     fn new(seed: u64) -> Self;
     fn next_u64(&mut self) -> u64;
-    fn next_capped_u64(&mut self, modulus: u64) -> u64;
     fn advance(&mut self, n: u32) {
         (0..n).for_each(|_| { let _ = self.next_u64(); })
+    }
+
+    fn next_capped_u64(&mut self, modulus: u64) -> u64 {
+        loop {
+            let (residue, overflowed) = 
+                self.overflowing_next_capped_u64(modulus);
+            #[cfg(feature = "reroll")]
+            if overflowed {
+                continue;
+            }
+            return residue;
+        }
+    }
+
+    fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool) {
+        let bits = self.next_u64() >> 1;
+        let residue = bits % modulus;
+        (residue, bits + modulus < residue + 1)
+    }
+
+    fn unchecked_next_capped_u64(&mut self, modulus: u64) -> u64 {
+        self.overflowing_next_capped_u64(modulus).0
     }
 }
 
@@ -47,7 +68,7 @@ mod unit_tests {
         values: [Option<RngValue>; 16],
     }
 
-    use crate::{new_rng, old_rng};
+    use crate::{new_rng, old_rng, RandomXS128};
 
     const VALUE_LISTS: [RngValues; 7] = [
         RngValues {
@@ -91,7 +112,7 @@ mod unit_tests {
                     Some(RngValue::CappedU64 { modulus, residue }) =>
                         assert_eq!(rng.next_capped_u64(modulus), residue),
                     Some(RngValue::Advance(k)) =>
-                        (0..k).for_each(|_| { let _ = rng.next_u64(); }),
+                        rng.advance(k),
                     None => {}
                 }
             }
@@ -125,6 +146,7 @@ mod verification {
 
     use crate::old_rng::Random as OldRandom;
     use crate::new_rng::Random as NewRandom;
+    use super::*;
 
     #[kani::proof]
     fn next_u64() {
@@ -155,8 +177,8 @@ mod verification {
         let mut new_rng: NewRandom = (seed0, seed1).into();
         
         assert!(
-            old_rng.next_capped_u64_raw(modulus) ==
-            new_rng.next_capped_u64_raw(modulus)
+            old_rng.overflowing_next_capped_u64(modulus) ==
+            new_rng.overflowing_next_capped_u64(modulus)
         );
     }
 
@@ -176,8 +198,8 @@ mod verification {
         let mut new_rng: NewRandom = (seed0, seed1).into();
         
         assert!(
-            old_rng.overflowing_next_capped_u64(modulus) ==
-            new_rng.overflowing_next_capped_u64(modulus)
+            old_rng.unchecked_next_capped_u64(modulus) ==
+            new_rng.unchecked_next_capped_u64(modulus)
         );
     }
 
