@@ -3,6 +3,20 @@ pub(crate) mod new_rng;
 pub mod old_rng;
 pub use old_rng as rng;
 
+pub(crate) trait HashXS128 {
+    fn murmur_hash3(x: u64) -> u64;
+    fn shr33(x: u64) -> u64;
+}
+
+pub trait RandomXS128 {
+    fn new(seed: u64) -> Self;
+    fn next_u64(&mut self) -> u64;
+    fn next_capped_u64(&mut self, modulus: u64) -> u64;
+    fn advance(&mut self, n: u32) {
+        (0..n).for_each(|_| { let _ = self.next_u64(); })
+    }
+}
+
 #[cfg(test)]
 mod unit_tests {
     enum RngValue {
