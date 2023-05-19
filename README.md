@@ -19,20 +19,25 @@ This helps us refactor `new_rng` to always compile without a single `panic`.
 ```mermaid
 graph LR;
     
-classDef Complete fill:#000, stroke:#27ae60, stroke-width:4px, color:#fff;
-classDef Incomplete fill:#000, stroke:#e67e22, stroke-width:4px, color:#fff;
+    classDef Complete stroke:#27ae60, fill:#000, color:#fff, stroke-width:2px;
+    classDef NoPanic stroke:#f1c40f, fill:#000, color:#fff, stroke-width:2px;
+    classDef Panics stroke:#e74c3c, fill:#000, color:#fff, stroke-width:2px;
 
-
-    Green[green means cannot panic]:::Complete --required for--> Orange[orange means may panic]:::Incomplete;
+    Green[green: model-checked]:::Complete
+    --required for-->
+    Orange[compiles with #no_panic]:::NoPanic
+    -->
+    Red[does does compile with #no_panic]:::Panics
+    ;
     
-    From_u64_u64:::Incomplete;
-    new:::Incomplete;
-    From_SeedInitializer:::Incomplete;
-    murmur_hash3:::Incomplete;
-    inverse_murmur_hash3:::Incomplete;
-    shr_33:::Incomplete;
-    wrapping_const_mul:::Incomplete;
-    From_i64:::Incomplete;
+    From_u64_u64:::Panics;
+    new:::Panics;
+    From_SeedInitializer:::Panics;
+    murmur_hash3:::Panics;
+    inverse_murmur_hash3:::Panics;
+    shr_33:::Panics;
+    wrapping_const_mul:::Panics;
+    From_i64:::Panics;
 
     new --i64 as u64--> From_i64;
     From_SeedInitializer --Seed--> new;
@@ -49,11 +54,11 @@ classDef Incomplete fill:#000, stroke:#e67e22, stroke-width:4px, color:#fff;
     wrapping_const_mul --> murmur_hash3;
     wrapping_const_mul --> inverse_murmur_hash3;
 
-    next_u64:::Incomplete;
-    overflowing_next_capped_u64:::Incomplete;
-    advance:::Incomplete;
-    unchecked_next_capped_u64:::Incomplete;
-    next_capped_u64:::Incomplete;
+    next_u64:::Panics;
+    overflowing_next_capped_u64:::Panics;
+    advance:::Panics;
+    unchecked_next_capped_u64:::Panics;
+    next_capped_u64:::Panics;
 
     next_u64 --> overflowing_next_capped_u64;
     next_u64 --> advance;
