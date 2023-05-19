@@ -23,6 +23,12 @@ impl From<(u64, u64)> for SeedInitializer {
     }
 }
 
+pub const MH3_FACTOR_1: u64 = 0xff51afd7ed558ccd;
+pub const MH3_FACTOR_2: u64 = 0xc4ceb9fe1a85ec53;
+
+pub const INV_MH3_FACTOR_1: u64 = 0x9cb4b2f8129337db;
+pub const INV_MH3_FACTOR_2: u64 = 0x4f74430c22a54005;
+
 pub trait RandomXS128: 
     From<SeedInitializer>
 {
@@ -199,5 +205,39 @@ mod verification {
         );
     }
 
-    
+    #[kani::proof]
+    fn wrapping_xor_shr33() {
+        let seed0 = kani::any();
+        
+        let old_shr33: u64 = seed0 ^ seed0 >> 33;
+        let new_shr33: u64 = new_rng::Random
+            ::wrapping_xor_shr33(seed0);
+        assert!(
+            old_shr33 ==
+            new_shr33
+        );
+    }
+
+    // #[kani::proof]
+    // fn wrapping_mul() {
+    //     let seed0: u64 = kani::any();
+        
+    //     const FACTORS: [u64; 4] = [
+    //         MH3_FACTOR_1,
+    //         MH3_FACTOR_2,
+    //         INV_MH3_FACTOR_1,
+    //         INV_MH3_FACTOR_2
+    //     ];
+        
+    //     for FACTOR in FACTORS {
+    //         let old_mul: u64 = seed0.wrapping_mul(FACTOR);
+    //         let new_mul: u64 = new_rng::Random
+    //             ::wrapping_const_mul::<{FACTOR}>(seed0);
+            
+    //         assert!(
+    //             old_mul ==
+    //             new_mul
+    //         );
+    //     }
+    // }
 }

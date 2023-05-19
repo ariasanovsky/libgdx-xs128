@@ -3,7 +3,7 @@ mod xs128;
 pub use from::*;
 pub use xs128::*;
 
-use crate::{SeedInitializer, RandomXS128};
+use crate::{SeedInitializer, RandomXS128, MH3_FACTOR_1, MH3_FACTOR_2, INV_MH3_FACTOR_1, INV_MH3_FACTOR_2};
 
 #[derive(Debug)]
 pub struct Random {
@@ -28,29 +28,40 @@ impl RandomXS128 for Random {
     }
 
     fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool)  {
-        let bits = self.next_u64() >> 1;
+        let bits = self.next_u64().wrapping_shr(1);
         let residue = bits % modulus;
-        (residue, bits + modulus < residue + 1)
+        (residue, bits.wrapping_add(modulus) < residue.wrapping_add(1))
     }
 }
 
 impl Random {
-    pub(crate) fn murmur_hash3(mut x: u64) -> u64 {
-        x ^= x >> 33;
-        x = x.wrapping_mul(0xff51afd7ed558ccd);
-        x ^= x >> 33;
-        x = x.wrapping_mul(0xc4ceb9fe1a85ec53);
-        x ^= x >> 33;
-        x
+    pub(crate) fn wrapping_xor_shr33(x: u64) -> u64 {
+        x ^ x.wrapping_shr(33)
     }
 
-    pub(crate) fn inverse_murmur_hash3(mut x: u64) -> u64 {
-        x ^= x >> 33;
-        x = x.wrapping_mul(0x9cb4b2f8129337db);
-        x ^= x >> 33;
-        x = x.wrapping_mul(0x4f74430c22a54005);
-        x ^= x >> 33;
-        x
+    pub(crate) fn wrapping_const_mul<const FACTOR: u64>(x: u64) -> u64 {
+        x.wrapping_mul(FACTOR)
+    }
+    
+    pub(crate) fn _wrapping_shr33_and_mult(x: u64, factor: u64) -> u64 {
+        let x = Random::wrapping_xor_shr33(x);
+        x.wrapping_mul(factor)
+    }
+    
+    pub(crate) fn murmur_hash3(x: u64) -> u64 {
+        let mut x = Random::wrapping_xor_shr33(x);
+        x = Random::wrapping_const_mul::<MH3_FACTOR_1>(x);
+        x = Random::wrapping_xor_shr33(x);
+        x = x.wrapping_mul(MH3_FACTOR_2);
+        Random::wrapping_xor_shr33(x)
+    }
+
+    pub(crate) fn inverse_murmur_hash3(x: u64) -> u64 {
+        let mut x = Random::wrapping_xor_shr33(x);
+        x = x.wrapping_mul(INV_MH3_FACTOR_1);
+        x = Random::wrapping_xor_shr33(x);
+        x = x.wrapping_mul(INV_MH3_FACTOR_2);
+        Random::wrapping_xor_shr33(x)
     }
 }
 
