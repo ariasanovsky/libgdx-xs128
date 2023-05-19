@@ -19,8 +19,9 @@ This helps us refactor `new_rng` to always compile without a single `panic`.
 ```mermaid
 graph LR;
     
-    classDef Complete stroke:#27ae60,stroke-width:2px;
-    classDef Incomplete stroke:#f39c12,stroke-width:2px;
+classDef Complete fill:#000, stroke:#27ae60, stroke-width:4px, color:#fff;
+classDef Incomplete fill:#000, stroke:#e67e22, stroke-width:4px, color:#fff;
+
 
     Green[green means cannot panic]:::Complete --required for--> Orange[orange means may panic]:::Incomplete;
     
