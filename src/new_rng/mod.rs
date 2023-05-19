@@ -39,29 +39,31 @@ impl Random {
         x ^ x.wrapping_shr(33)
     }
 
-    pub(crate) fn wrapping_const_mul<const FACTOR: u64>(x: u64) -> u64 {
+    pub(crate) fn wrapping_const_mul
+    <const FACTOR: u64>(x: u64) -> u64 {
         x.wrapping_mul(FACTOR)
     }
     
-    pub(crate) fn _wrapping_shr33_and_mult(x: u64, factor: u64) -> u64 {
-        let x = Random::wrapping_xor_shr33(x);
-        x.wrapping_mul(factor)
+    pub(crate) fn wrapping_shr33_and_const_mult
+    <const FACTOR: u64>(x: u64) -> u64 {
+        let x = Self::wrapping_xor_shr33(x);
+        Self::wrapping_const_mul::<FACTOR>(x)
     }
     
     pub(crate) fn murmur_hash3(x: u64) -> u64 {
-        let mut x = Random::wrapping_xor_shr33(x);
-        x = Random::wrapping_const_mul::<MH3_FACTOR_1>(x);
-        x = Random::wrapping_xor_shr33(x);
-        x = x.wrapping_mul(MH3_FACTOR_2);
-        Random::wrapping_xor_shr33(x)
+        let mut x = Self::wrapping_shr33_and_const_mult
+            ::<MH3_FACTOR_1>(x);
+        x = Self::wrapping_shr33_and_const_mult
+            ::<MH3_FACTOR_2>(x);
+        Self::wrapping_xor_shr33(x)
     }
 
     pub(crate) fn inverse_murmur_hash3(x: u64) -> u64 {
-        let mut x = Random::wrapping_xor_shr33(x);
-        x = x.wrapping_mul(INV_MH3_FACTOR_1);
-        x = Random::wrapping_xor_shr33(x);
-        x = x.wrapping_mul(INV_MH3_FACTOR_2);
-        Random::wrapping_xor_shr33(x)
+        let mut x = Self::wrapping_shr33_and_const_mult
+            ::<INV_MH3_FACTOR_1>(x);
+        x = Self::wrapping_shr33_and_const_mult
+            ::<INV_MH3_FACTOR_2>(x);
+        Self::wrapping_xor_shr33(x)
     }
 }
 

@@ -145,7 +145,7 @@ mod unit_tests {
 
 #[cfg(kani)]
 mod verification {
-
+    
     use crate::old_rng::Random as OldRandom;
     use crate::new_rng::Random as NewRandom;
     use super::*;
@@ -164,7 +164,7 @@ mod verification {
     }
 
     #[kani::proof]
-    fn next_u64_capped_raw() {
+    fn overflowing_next_capped_u64() {
         let seed0 = kani::any();
         let seed1 = kani::any();
         let modulus: u64 = kani::any();
@@ -185,7 +185,7 @@ mod verification {
     }
 
     #[kani::proof]
-    fn overflowing_next_u64_capped() {
+    fn unchecked_next_capped_u64() {
         let seed0 = kani::any();
         let seed1 = kani::any();
         let modulus: u64 = kani::any();
@@ -218,26 +218,48 @@ mod verification {
         );
     }
 
+    const FACTORS: [u64; 4] = [
+        MH3_FACTOR_1,
+        MH3_FACTOR_2,
+        INV_MH3_FACTOR_1,
+        INV_MH3_FACTOR_2
+    ];
+    
+    const SHIFTS: [u32; 8] = [0, 8, 16, 24, 32, 40, 48, 56];
+    
+    fn wrapping_mul
+    <const FACTOR: u64, const SHIFT: u32>
+    (seed0: u64) {
+        let old_mul: u64 = seed0.wrapping_mul(FACTOR);
+        let new_mul: u64 = new_rng::Random
+            ::wrapping_const_mul::<FACTOR>(seed0);
+        assert!(
+            old_mul.wrapping_shr(SHIFT) as u8 ==
+            new_mul.wrapping_shr(SHIFT) as u8
+        );
+    }
+    
+    #[kani::proof]
+    fn wrapping_mul_0_0() {
+        let seed0 = kani::any();
+        wrapping_mul::<{FACTORS[0]}, {SHIFTS[0]}>(seed0);
+    }
+
+    #[kani::proof]
+    fn wrapping_mul_0_1() {
+        let seed0 = kani::any();
+        wrapping_mul::<{FACTORS[0]}, {SHIFTS[1]}>(seed0);
+    }
+
     // #[kani::proof]
-    // fn wrapping_mul() {
-    //     let seed0: u64 = kani::any();
-        
-    //     const FACTORS: [u64; 4] = [
-    //         MH3_FACTOR_1,
-    //         MH3_FACTOR_2,
-    //         INV_MH3_FACTOR_1,
-    //         INV_MH3_FACTOR_2
-    //     ];
-        
-    //     for FACTOR in FACTORS {
-    //         let old_mul: u64 = seed0.wrapping_mul(FACTOR);
-    //         let new_mul: u64 = new_rng::Random
-    //             ::wrapping_const_mul::<{FACTOR}>(seed0);
-            
-    //         assert!(
-    //             old_mul ==
-    //             new_mul
-    //         );
-    //     }
+    // fn wrapping_mul_0_2() {
+    //     let seed0 = kani::any();
+    //     wrapping_mul::<{FACTORS[0]}, {SHIFTS[2]}>(seed0);
+    // }
+
+    // #[kani::proof]
+    // fn wrapping_mul_0_3() {
+    //     let seed0 = kani::any();
+    //     wrapping_mul::<{FACTORS[0]}, {SHIFTS[3]}>(seed0);
     // }
 }
