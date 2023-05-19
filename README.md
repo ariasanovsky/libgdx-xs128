@@ -21,23 +21,26 @@ graph LR;
     
     classDef Complete stroke:#27ae60, fill:#000, color:#fff, stroke-width:2px;
     classDef NoPanic stroke:#f1c40f, fill:#000, color:#fff, stroke-width:2px;
-    classDef Panics stroke:#e74c3c, fill:#000, color:#fff, stroke-width:2px;
+    classDef Tested stroke:#f39c12, fill:#000, color:#fff, stroke-width:2px;
+    classDef Untested stroke:#e74c3c, fill:#000, color:#fff, stroke-width:2px;
 
     Green[green: model-checked]:::Complete
-    --required for-->
-    Orange[compiles with #no_panic]:::NoPanic
     -->
-    Red[does does compile with #no_panic]:::Panics
+    Yellow[yellow: tests run in release mode with #no_panic]:::NoPanic
+    -->
+    Orange[orange: covered by at least 1 test]:::Tested
+    -->
+    Red[red: otherwise]:::Untested
     ;
     
-    From_u64_u64:::Panics;
-    new:::Panics;
-    From_SeedInitializer:::Panics;
-    murmur_hash3:::Panics;
-    inverse_murmur_hash3:::Panics;
-    shr_33:::Panics;
-    wrapping_const_mul:::Panics;
-    From_i64:::Panics;
+    From_u64_u64:::Untested;
+    new:::Tested;
+    From_SeedInitializer:::Untested;
+    murmur_hash3:::Tested;
+    inverse_murmur_hash3:::Untested;
+    shr_33:::Tested;
+    wrapping_const_mul:::Tested;
+    From_i64:::Untested;
 
     new --i64 as u64--> From_i64;
     From_SeedInitializer --Seed--> new;
@@ -54,11 +57,11 @@ graph LR;
     wrapping_const_mul --> murmur_hash3;
     wrapping_const_mul --> inverse_murmur_hash3;
 
-    next_u64:::Panics;
-    overflowing_next_capped_u64:::Panics;
-    advance:::Panics;
-    unchecked_next_capped_u64:::Panics;
-    next_capped_u64:::Panics;
+    next_u64:::Tested;
+    overflowing_next_capped_u64:::Untested;
+    advance:::Tested;
+    unchecked_next_capped_u64:::Untested;
+    next_capped_u64:::Tested;
 
     next_u64 --> overflowing_next_capped_u64;
     next_u64 --> advance;

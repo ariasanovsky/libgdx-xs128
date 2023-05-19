@@ -8,6 +8,7 @@ repository = "https://github.com/ariasanovsky/libgdx-xs128"
 description = "minimalist no_std clone of the Xorshift128+ algorithm used in the libgdx Java library."
 
 [dependencies]
+no-panic = "0.1.22"
 
 [features]
 std = []

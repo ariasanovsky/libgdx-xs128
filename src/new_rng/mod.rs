@@ -35,21 +35,25 @@ impl RandomXS128 for Random {
 }
 
 impl Random {
+    #[no_panic::no_panic]
     pub(crate) fn wrapping_xor_shr33(x: u64) -> u64 {
         x ^ x.wrapping_shr(33)
     }
 
+    #[no_panic::no_panic]
     pub(crate) fn wrapping_const_mul
     <const FACTOR: u64>(x: u64) -> u64 {
         x.wrapping_mul(FACTOR)
     }
     
+    #[no_panic::no_panic]
     pub(crate) fn wrapping_shr33_and_const_mult
     <const FACTOR: u64>(x: u64) -> u64 {
         let x = Self::wrapping_xor_shr33(x);
         Self::wrapping_const_mul::<FACTOR>(x)
     }
     
+    #[no_panic::no_panic]
     pub(crate) fn murmur_hash3(x: u64) -> u64 {
         let mut x = Self::wrapping_shr33_and_const_mult
             ::<MH3_FACTOR_1>(x);
