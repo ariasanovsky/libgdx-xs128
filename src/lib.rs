@@ -30,7 +30,7 @@ pub const INV_MH3_FACTOR_1: u64 = 0x9cb4b2f8129337db;
 pub const INV_MH3_FACTOR_2: u64 = 0x4f74430c22a54005;
 
 pub trait RandomXS128: 
-    From<SeedInitializer>
+    From<SeedInitializer> + RandomXS128Initialization
 {
     fn new(seed: u64) -> Self;
     fn next_u64(&mut self) -> u64;
@@ -50,11 +50,18 @@ pub trait RandomXS128:
         }
     }
 
-    fn unchecked_next_capped_u64(&mut self, modulus: u64) -> u64 {
-        self.overflowing_next_capped_u64(modulus).0
-    }
+    fn unchecked_next_capped_u64(&mut self, modulus: u64) -> u64;
 
     fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool);
+}
+
+pub trait RandomXS128Initialization {
+    fn murmur_hash3(x: u64) -> u64;
+    fn inverse_murmur_hash3(x: u64) -> u64;
+
+    fn wrapping_xor_shr33(x: u64) -> u64;
+    fn wrapping_const_mul<const FACTOR: u64>(x: u64) -> u64;
+    fn wrapping_shr33_and_const_mult<const FACTOR: u64>(x: u64) -> u64;
 }
 
 #[cfg(test)]

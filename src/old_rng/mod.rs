@@ -3,7 +3,7 @@ mod xs128;
 pub use from::*;
 pub use xs128::*;
 
-use crate::{SeedInitializer, RandomXS128, MH3_FACTOR_1, MH3_FACTOR_2, INV_MH3_FACTOR_1, INV_MH3_FACTOR_2};
+use crate::{SeedInitializer, RandomXS128, MH3_FACTOR_1, MH3_FACTOR_2, INV_MH3_FACTOR_1, INV_MH3_FACTOR_2, RandomXS128Initialization};
 
 #[derive(Debug)]
 pub struct Random {
@@ -27,10 +27,36 @@ impl RandomXS128 for Random {
         s0.wrapping_add(self.seed1)
     }
 
+    fn unchecked_next_capped_u64(&mut self, modulus: u64) -> u64 {
+        self.overflowing_next_capped_u64(modulus).0
+    }
+
     fn overflowing_next_capped_u64(&mut self, modulus: u64) -> (u64, bool)  {
         let bits = self.next_u64() >> 1;
         let residue = bits % modulus;
         (residue, bits + modulus < residue + 1)
+    }
+}
+
+impl RandomXS128Initialization for Random {
+    fn murmur_hash3(x: u64) -> u64 {
+        todo!()
+    }
+
+    fn inverse_murmur_hash3(x: u64) -> u64 {
+        todo!()
+    }
+
+    fn wrapping_xor_shr33(x: u64) -> u64 {
+        todo!()
+    }
+
+    fn wrapping_const_mul<const FACTOR: u64>(x: u64) -> u64 {
+        todo!()
+    }
+
+    fn wrapping_shr33_and_const_mult<const FACTOR: u64>(x: u64) -> u64 {
+        todo!()
     }
 }
 
