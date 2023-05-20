@@ -3,7 +3,7 @@ mod xs128;
 pub use from::*;
 pub use xs128::*;
 
-use crate::{SeedInitializer, RandomXS128, MH3_FACTOR_1, MH3_FACTOR_2, INV_MH3_FACTOR_1, INV_MH3_FACTOR_2, RandomXS128Initialization};
+use crate::{SeedInitializer, RandomXS128, RandomXS128Initialization};
 
 #[derive(Debug)]
 pub struct Random {
@@ -39,44 +39,12 @@ impl RandomXS128 for Random {
 }
 
 impl RandomXS128Initialization for Random {
-    fn murmur_hash3(x: u64) -> u64 {
-        todo!()
-    }
-
-    fn inverse_murmur_hash3(x: u64) -> u64 {
-        todo!()
-    }
-
     fn wrapping_xor_shr33(x: u64) -> u64 {
-        todo!()
+        x ^ x >> 33
     }
 
     fn wrapping_const_mul<const FACTOR: u64>(x: u64) -> u64 {
-        todo!()
-    }
-
-    fn wrapping_shr33_and_const_mult<const FACTOR: u64>(x: u64) -> u64 {
-        todo!()
-    }
-}
-
-impl Random {
-    pub(crate) fn murmur_hash3(mut x: u64) -> u64 {
-        x ^= x >> 33;
-        x = x.wrapping_mul(MH3_FACTOR_1);
-        x ^= x >> 33;
-        x = x.wrapping_mul(MH3_FACTOR_2);
-        x ^= x >> 33;
-        x
-    }
-
-    pub(crate) fn inverse_murmur_hash3(mut x: u64) -> u64 {
-        x ^= x >> 33;
-        x = x.wrapping_mul(INV_MH3_FACTOR_1);
-        x ^= x >> 33;
-        x = x.wrapping_mul(INV_MH3_FACTOR_2);
-        x ^= x >> 33;
-        x
+        x.wrapping_mul(FACTOR)
     }
 }
 

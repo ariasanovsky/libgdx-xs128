@@ -56,12 +56,28 @@ pub trait RandomXS128:
 }
 
 pub trait RandomXS128Initialization {
-    fn murmur_hash3(x: u64) -> u64;
-    fn inverse_murmur_hash3(x: u64) -> u64;
+    fn murmur_hash3(x: u64) -> u64 {
+        let mut x = Self::wrapping_shr33_and_const_mult
+            ::<MH3_FACTOR_1>(x);
+        x = Self::wrapping_shr33_and_const_mult
+            ::<MH3_FACTOR_2>(x);
+        Self::wrapping_xor_shr33(x)
+    }
+    fn inverse_murmur_hash3(x: u64) -> u64 {
+        let mut x = Self::wrapping_shr33_and_const_mult
+            ::<INV_MH3_FACTOR_1>(x);
+        x = Self::wrapping_shr33_and_const_mult
+            ::<INV_MH3_FACTOR_2>(x);
+        Self::wrapping_xor_shr33(x)
+    }
 
     fn wrapping_xor_shr33(x: u64) -> u64;
     fn wrapping_const_mul<const FACTOR: u64>(x: u64) -> u64;
-    fn wrapping_shr33_and_const_mult<const FACTOR: u64>(x: u64) -> u64;
+    fn wrapping_shr33_and_const_mult<const FACTOR: u64>(x: u64) -> u64 {
+        Self::wrapping_const_mul::<FACTOR>(
+            Self::wrapping_xor_shr33(x)
+        )
+    }
 }
 
 #[cfg(test)]
